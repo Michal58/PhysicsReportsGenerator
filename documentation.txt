@@ -1,0 +1,8 @@
+Program searches for settings with name "settings.json" in chosen directory
+
+Fields of settings.json (they are also listed in settings_namespace.py):
+{
+    "baseFiles":<path to base files>
+    "sourceFiles":<path to source files>
+    "generatedFiles":<path to generated files>
+}
