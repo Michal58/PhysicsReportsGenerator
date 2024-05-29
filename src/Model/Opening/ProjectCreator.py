@@ -1,7 +1,8 @@
 import os.path
 import sys
 
-from src.Model.SettingsSaver import SettingsSaver
+from Model.Opening.FilesDirectoriesManager import FilesDirectoriesManager
+from Model.Opening.SettingsOperator import SettingsOperator
 from src.settings_namespace import *
 
 
@@ -14,16 +15,16 @@ class ProjectCreator:
         # json field->path to directory with files
         self.basic_settings = {setting_field: os.path.join(self.creation_dir, setting_field) for setting_field in
                                SETTINGS_FIELDS_LIST}
-        SettingsSaver.save(self.creation_dir, self.basic_settings)
+        SettingsOperator.save(self.creation_dir, self.basic_settings)
 
     def create(self) -> bool:
-        try:
-            self.create_settings()
-            for directory_path in self.basic_settings.values():
-                os.mkdir(directory_path)
-            return True
-        except (FileNotFoundError, NotADirectoryError):
+        if not os.path.exists(self.creation_dir):
             return False
+        self.create_settings()
+        return FilesDirectoriesManager.create_non_existent_directories(self.basic_settings)
+
+    def get_settings(self) -> dict[str, str]:
+        return self.basic_settings
 
 
 def main_function() -> None:
