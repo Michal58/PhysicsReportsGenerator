@@ -1,7 +1,7 @@
 import os.path
 import sys
 
-from Model.Opening.FilesDirectoriesManager import FilesDirectoriesManager
+from Model.FilesDirectoriesManager import FilesDirectoriesManager
 from Model.Opening.SettingsOperator import SettingsOperator
 from src.settings_namespace import *
 

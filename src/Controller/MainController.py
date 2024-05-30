@@ -11,6 +11,8 @@ from src.UI.OpeningWindow import OpeningWindow
 
 
 class MainController:
+    SELECT_DIR_CAPTION:str='Select dir'
+
     def __init__(self):
         self.application: QApplication = QApplication(sys.argv)
         self.opening_window: OpeningWindow = OpeningWindow()
@@ -23,7 +25,7 @@ class MainController:
 
     def select_opening_directory(self) -> str:
         return self.opening_window.directory_dialog.getExistingDirectory(parent=self.opening_window,
-                                                                         caption='Select dir',
+                                                                         caption=MainController.SELECT_DIR_CAPTION,
                                                                          dir=QFileInfo(os.getcwd()).absolutePath())
 
     def select_workspace_by_open(self) -> None:
@@ -38,7 +40,7 @@ class MainController:
 
     def select_workspace_by_create(self) -> None:
         selected_directory: str = self.select_opening_directory()
-        selected_directory:str = os.path.normpath(selected_directory)
+        selected_directory: str = os.path.normpath(selected_directory)
         creator: ProjectCreator = ProjectCreator(selected_directory)
         was_open_successful: bool = creator.create()
         if was_open_successful:
@@ -47,12 +49,16 @@ class MainController:
         else:
             self.opening_window.communicate_operation_failure()
 
+    def fill_panels(self)->None:
+        pass
+
     def run(self) -> None:
         self.connect_components_with_actions()
         self.opening_window.exec()
         if self.settings == {}:
             exit(0)
         else:
+            self.fill_panels()
             self.main_window.show()
             exit(self.application.exec())
 

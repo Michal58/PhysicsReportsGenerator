@@ -12,3 +12,5 @@ If project is 'created', in current version new settings file will overwrite ano
 if such exists.
 
 Project will automatically create needed directories defined in settings if they couldn't be found
+
+Creator convention - name of creator script -> name of creator class
