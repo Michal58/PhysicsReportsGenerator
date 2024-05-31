@@ -1,3 +1,4 @@
+import locale
 import os
 import sys
 
@@ -11,7 +12,7 @@ from src.UI.OpeningWindow import OpeningWindow
 
 
 class MainController:
-    SELECT_DIR_CAPTION:str='Select dir'
+    SELECT_DIR_CAPTION: str='Select dir'
 
     def __init__(self):
         self.application: QApplication = QApplication(sys.argv)

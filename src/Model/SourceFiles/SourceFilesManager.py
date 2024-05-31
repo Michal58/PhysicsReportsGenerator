@@ -7,8 +7,10 @@ from settings_namespace import SOURCE_FILES
 class SourceFilesManager:
     # format of source file - {number}_{name of file}
     EXTENSION: str='tex'
-    FILE_FORMAT: str = fr'^(\d+)_(\w+).{EXTENSION}$'
+    NAME_FORMAT: str=r'([\w ]+)'
+    FILE_FORMAT: str = fr'^(\d+)_{NAME_FORMAT}\.{EXTENSION}$'
     BAD_FORMAT_NUMER: int = -1
+    BAD_FILE_NAME: str=''
     START_COUNT: int = 0
 
     def __init__(self, settings: dict[str, str]):
@@ -20,10 +22,10 @@ class SourceFilesManager:
 
     def get_list_of_files(self) -> None:
         files_directories_manager = FilesDirectoriesManager(self.settings)
-        self.files_list = files_directories_manager.read_files_from_directory(SOURCE_FILES)
+        self.files_list = list(filter(lambda file_name: re.fullmatch(SourceFilesManager.FILE_FORMAT, file_name) is not None, files_directories_manager.read_files_from_directory(SOURCE_FILES)))
 
     def file_name_decomposer(self, file_name: str) -> tuple[int, str]:
-        match_result = re.match(SourceFilesManager.FILE_FORMAT, file_name)
+        match_result = re.fullmatch(SourceFilesManager.FILE_FORMAT, file_name)
         if match_result:
             return match_result.group(1), match_result.group(2)
         else:
@@ -33,18 +35,21 @@ class SourceFilesManager:
         return sorted(self.files_list, key=self.sorting_key)
 
     def find_the_last_file(self) -> str | None:
+        self.get_list_of_files()
         if len(self.files_list) > 0:
             last_file = max(self.files_list, key=self.sorting_key)
             return last_file
         else:
             return None
 
-    def next_file_name(self, name_part: str):
+    def next_file_name(self, name_part: str)->str:
+        if re.fullmatch(SourceFilesManager.NAME_FORMAT, name_part) is None:
+            return SourceFilesManager.BAD_FILE_NAME
         last_file = self.find_the_last_file()
         if last_file is None:
             return f'{SourceFilesManager.START_COUNT}_{name_part}.{SourceFilesManager.EXTENSION}'
         num, _ = self.file_name_decomposer(last_file)
-        return f'{num + 1}_{name_part}.{SourceFilesManager.EXTENSION}'
+        return f'{int(num) + 1}_{name_part}.{SourceFilesManager.EXTENSION}'
 
     def save_source_file(self, file_name: str, content: str) -> bool:
         return self.directories_manager.save_file_to_directory(SOURCE_FILES, file_name, content)

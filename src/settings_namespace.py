@@ -1,3 +1,4 @@
+ENCODING='utf-8'
 SETTINGS_FILE_NAME = "settings.json"
 
 BASE_FILES: str = "baseFiles"

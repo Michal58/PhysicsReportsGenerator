@@ -1,3 +1,5 @@
+import locale
+import re
 import sys
 from datetime import datetime
 
@@ -41,8 +43,10 @@ class DocumentCreator(Creator):
     TITLE: str = "Document creator"
     BODY_MARK: str = "Body"
 
-    def __init__(self, settings: dict[str, str], creator_listener: CreatorListener):
-        self.dialog: TitleCreatorDialog
+    def __init__(self, settings: dict[str, str], creator_listener: CreatorListener, parent_widget: QWidget):
+        super().__init__(creator_listener, parent_widget)
+        self.dialog_execution: int = QDialog.Rejected
+        self.dialog: TitleCreatorDialog = TitleCreatorDialog(self.parent_widget)
         self.creator_listener: CreatorListener = creator_listener
         self.file_name: str = ''
         self.author: str = ''
@@ -58,20 +62,24 @@ class DocumentCreator(Creator):
         self.file_name = self.source_files_manger.next_file_name(title)
         self.author = author
 
-    def validate_user_info(self) -> bool:
-        return len(self.author) > 0
-
-    def create_document(self) -> None:
-        title, author=self.dialog.get_user_input()
+    def set_data(self) -> None:
+        self.dialog_execution: int=self.dialog.exec()
+        title, author = self.dialog.get_user_input()
         self.set_info_for_document(title, author)
 
-        if not self.validate_user_info():
-            self.creator_listener.notify_about_result_of_main_function(False)
-            return
+    def validate_user_info(self) -> bool:
+        return len(self.author) > 0 and self.file_name!=SourceFilesManager.BAD_FILE_NAME
+
+    def validate_data(self) -> bool:
+        return self.dialog_execution==QDialog.Accepted and self.validate_user_info()
+
+    def create_document(self) -> bool:
         body_include_mark: str = SourceFile.create_include_command(DocumentCreator.BODY_MARK)
         basic_document: str = (f'{NoEscape(r'\documentclass{article}')}\n'
                                f'{NoEscape(r'\usepackage{graphicx}')}\n'
-                               f'{NoEscape(r'\usepackage{float}')}\n\n'
+                               f'{NoEscape(r'\usepackage{float}')}\n'
+                               f'{NoEscape(r'\usepackage[T1]{fontenc}')}\n'
+                               f'{NoEscape(r'\usepackage{hyperref}')}\n\n'
                                f'{Command('title', self.title).dumps()}\n'
                                f'{Command('author', self.author).dumps()}\n'
                                f'{Command('date', datetime.now().strftime("%d %B %Y")).dumps()}\n\n'
@@ -79,17 +87,18 @@ class DocumentCreator(Creator):
                                f'{NoEscape(r'\maketitle')}\n'
                                f'{body_include_mark}\n'
                                f'{NoEscape(r'\end{document}')}\n')
-        result = self.source_files_manger.save_source_file(self.file_name, basic_document)
-        self.creator_listener.notify_about_result_of_main_function(result)
+        return self.source_files_manger.save_source_file(self.file_name, basic_document)
 
-    def get_use_dialog(self, parent_widget: QWidget) -> QDialog:
-        self.dialog = TitleCreatorDialog(parent_widget)
+    def perform_operations(self) -> bool:
+        return self.create_document()
+
+    def get_use_dialog(self) -> QDialog:
         return self.dialog
 
 
 if __name__ == '__main__':
-    settings = {dir_type: f'..\\..\\..\\example\\{dir_type}' for dir_type in
-                ['baseFiles', 'sourceFiles', 'generatedFiles']}
+    local_settings = {dir_type: f'..\\..\\..\\example\\{dir_type}' for dir_type in
+                      ['baseFiles', 'sourceFiles', 'generatedFiles']}
 
 
     class Listener(CreatorListener):
@@ -97,12 +106,7 @@ if __name__ == '__main__':
             print(result)
 
 
-    doc_creator = DocumentCreator(settings, Listener())
-
     app = QApplication(sys.argv)
-    dialog = doc_creator.get_use_dialog(None)
+    doc_creator = DocumentCreator(local_settings, Listener(), None)
 
-    if dialog.exec() == QDialog.Accepted:
-        title, author = dialog.get_user_input()
-        doc_creator.set_info_for_document(title, author)
-        doc_creator.create_document()
+    doc_creator.perform_functionality()

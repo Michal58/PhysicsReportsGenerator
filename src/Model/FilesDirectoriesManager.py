@@ -1,5 +1,7 @@
 import os
 
+from settings_namespace import ENCODING
+
 
 class FilesDirectoriesManager:
     def __init__(self, settings: dict[str, str]):
@@ -28,7 +30,7 @@ class FilesDirectoriesManager:
         self.create_non_existent_directories()
         full_path = os.path.join(self.settings[file_type], file_name)
         try:
-            with open(full_path, 'w') as file:
+            with open(full_path, 'w', encoding=ENCODING) as file:
                 file.write(content)
                 return True
         except FileNotFoundError:

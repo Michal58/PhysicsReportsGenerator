@@ -1,7 +1,7 @@
 import json
 import os.path
 
-from src.settings_namespace import SETTINGS_FILE_NAME, SETTINGS_FIELDS_LIST
+from src.settings_namespace import SETTINGS_FILE_NAME, SETTINGS_FIELDS_LIST, ENCODING
 
 
 class SettingsOperator:
@@ -16,7 +16,7 @@ class SettingsOperator:
     def save(save_dir: str, fields_values: dict[str, str]) -> None:
         filepath: str = SettingsOperator.get_settings_filepath(save_dir)
         try:
-            with open(filepath, 'w') as settings_file:
+            with open(filepath, 'w', encoding=ENCODING) as settings_file:
                 json.dump(fields_values, settings_file, ensure_ascii=False)
         except FileNotFoundError:
             pass
@@ -33,7 +33,7 @@ class SettingsOperator:
         filepath: str = SettingsOperator.get_settings_filepath(read_dir)
 
         try:
-            with open(filepath, 'r') as setting_file:
+            with open(filepath, 'r', encoding=ENCODING) as setting_file:
                 read_fields: dict[str, str] = json.load(setting_file)
                 if SettingsOperator.validate_settings(read_fields):
                     return read_fields
