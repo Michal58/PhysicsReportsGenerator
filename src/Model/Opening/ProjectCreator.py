@@ -21,7 +21,8 @@ class ProjectCreator:
         if not os.path.exists(self.creation_dir):
             return False
         self.create_settings()
-        return FilesDirectoriesManager.create_non_existent_directories(self.basic_settings)
+        dir_manager=FilesDirectoriesManager(self.basic_settings)
+        return dir_manager.create_non_existent_directories()
 
     def get_settings(self) -> dict[str, str]:
         return self.basic_settings
