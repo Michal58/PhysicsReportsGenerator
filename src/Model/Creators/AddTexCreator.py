@@ -17,11 +17,10 @@ class AddTexCreator(Creator):
     TEX_FILE_FORMAT = fr'.+\.{TEX_EXTENSION}'
 
     def __init__(self, settings: dict[str, str], creator_listener: CreatorListener, parent_widget: QWidget) -> None:
-        super().__init__(creator_listener, parent_widget)
+        super().__init__(settings, creator_listener, parent_widget)
         self.pathfile_to_add: str = ''
         self.new_file_name: str = ''
         self.new_source_file_path: str = ''
-        self.settings: dict[str, str] = settings
         self.source_files_manager: SourceFilesManager = SourceFilesManager(settings)
         self.file_dialog: QFileDialog = QFileDialog(parent_widget)
 

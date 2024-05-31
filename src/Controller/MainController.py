@@ -15,6 +15,7 @@ class MainController:
     SELECT_DIR_CAPTION: str='Select dir'
 
     def __init__(self):
+        self.selected_directory: str = ''
         self.application: QApplication = QApplication(sys.argv)
         self.opening_window: OpeningWindow = OpeningWindow()
         self.main_window: MainWindow = MainWindow()
@@ -30,8 +31,8 @@ class MainController:
                                                                          dir=QFileInfo(os.getcwd()).absolutePath())
 
     def select_workspace_by_open(self) -> None:
-        selected_directory: str = self.select_opening_directory()
-        opener: ProjectOpener = ProjectOpener(selected_directory)
+        self.selected_directory: str = self.select_opening_directory()
+        opener: ProjectOpener = ProjectOpener(self.selected_directory)
         was_open_successful: bool = opener.open_project()
         if was_open_successful:
             self.settings = opener.get_settings()
@@ -40,8 +41,8 @@ class MainController:
             self.opening_window.communicate_operation_failure()
 
     def select_workspace_by_create(self) -> None:
-        selected_directory: str = self.select_opening_directory()
-        selected_directory: str = os.path.normpath(selected_directory)
+        self.selected_directory: str = self.select_opening_directory()
+        selected_directory: str = os.path.normpath(self.selected_directory)
         creator: ProjectCreator = ProjectCreator(selected_directory)
         was_open_successful: bool = creator.create()
         if was_open_successful:

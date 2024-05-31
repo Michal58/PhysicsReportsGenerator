@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from settings_namespace import ENCODING
 
@@ -33,5 +34,27 @@ class FilesDirectoriesManager:
             with open(full_path, 'w', encoding=ENCODING) as file:
                 file.write(content)
                 return True
+        except FileNotFoundError:
+            return False
+
+    def copy_file_to_directory(self, file_path: str, file_type: str) -> bool:
+        if not os.path.exists(file_path) or os.path.isdir(file_path):
+            return False
+        try:
+            base_name: str = os.path.basename(file_path)
+            dest_path = os.path.join(self.settings[file_type], base_name)
+            if base_name == dest_path:
+                return False
+            shutil.copyfile(file_path, dest_path)
+            return True
+        except FileNotFoundError:
+            return False
+
+    def remove_file(self, file_path: str) -> bool:
+        if not os.path.exists(file_path) or os.path.isdir(file_path):
+            return False
+        try:
+            os.remove(file_path)
+            return True
         except FileNotFoundError:
             return False

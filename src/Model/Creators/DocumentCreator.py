@@ -1,5 +1,3 @@
-import locale
-import re
 import sys
 from datetime import datetime
 
@@ -44,14 +42,13 @@ class DocumentCreator(Creator):
     BODY_MARK: str = "Body"
 
     def __init__(self, settings: dict[str, str], creator_listener: CreatorListener, parent_widget: QWidget):
-        super().__init__(creator_listener, parent_widget)
+        super().__init__(settings,creator_listener, parent_widget)
         self.dialog_execution: int = QDialog.Rejected
         self.dialog: TitleCreatorDialog = TitleCreatorDialog(self.parent_widget)
         self.creator_listener: CreatorListener = creator_listener
         self.file_name: str = ''
         self.author: str = ''
         self.title: str = ''
-        self.settings = settings
         self.source_files_manger = SourceFilesManager(self.settings)
 
     def get_title(self) -> str:

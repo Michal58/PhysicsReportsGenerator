@@ -6,7 +6,8 @@ from Model.Creators.CreatorListener import CreatorListener
 
 
 class Creator:
-    def __init__(self, creator_listener: CreatorListener, paren_widget: QWidget):
+    def __init__(self, settings: dict[str, str], creator_listener: CreatorListener, paren_widget: QWidget):
+        self.settings=settings
         self.creator_listener = creator_listener
         self.parent_widget=paren_widget
 
