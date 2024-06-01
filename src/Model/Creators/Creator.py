@@ -1,4 +1,5 @@
 import abc
+from typing import Any
 
 from PySide6.QtWidgets import QWidget, QDialog
 
@@ -6,10 +7,10 @@ from Model.Creators.CreatorListener import CreatorListener
 
 
 class Creator:
-    def __init__(self, settings: dict[str, str], creator_listener: CreatorListener, paren_widget: QWidget):
-        self.settings=settings
-        self.creator_listener = creator_listener
-        self.parent_widget=paren_widget
+    def __init__(self, settings: dict[str, str], creator_listener: CreatorListener, parent_widget: QWidget):
+        self.settings: dict[str, str] = settings
+        self.creator_listener: CreatorListener = creator_listener
+        self.parent_widget: QWidget = parent_widget
 
     @abc.abstractmethod
     def get_title(self) -> str:
@@ -20,7 +21,7 @@ class Creator:
         pass
 
     @abc.abstractmethod
-    def set_data(self)->None:
+    def set_data(self) -> None:
         pass
 
     @abc.abstractmethod

@@ -1,4 +1,4 @@
-import locale
+from typing import Any
 import os
 import sys
 
@@ -20,6 +20,7 @@ class MainController:
         self.opening_window: OpeningWindow = OpeningWindow()
         self.main_window: MainWindow = MainWindow()
         self.settings: dict[str, str] = {}
+        self.variables: dict[str, Any] = {}
 
     def connect_components_with_actions(self) -> None:
         self.opening_window.create_button.clicked.connect(self.select_workspace_by_create)
@@ -36,6 +37,7 @@ class MainController:
         was_open_successful: bool = opener.open_project()
         if was_open_successful:
             self.settings = opener.get_settings()
+            self.variables = opener.get_variables()
             self.opening_window.close()
         else:
             self.opening_window.communicate_operation_failure()

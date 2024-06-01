@@ -1,6 +1,8 @@
 import os
+from typing import Any
 
 from Model.Opening.SettingsOperator import SettingsOperator
+from Model.Variables.VariablesFileOperator import VariablesFileOperator
 
 
 class ProjectOpener:
@@ -19,3 +21,7 @@ class ProjectOpener:
 
     def get_settings(self) -> dict[str, str]:
         return self.read_settings
+
+    def get_variables(self)->dict[str, Any]:
+        var_Operator: VariablesFileOperator=VariablesFileOperator(self.open_directory)
+        return var_Operator.read_variables()

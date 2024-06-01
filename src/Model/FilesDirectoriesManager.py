@@ -58,3 +58,10 @@ class FilesDirectoriesManager:
             return True
         except FileNotFoundError:
             return False
+
+    def rename_file(self, file_path: str, new_path: str) -> bool:
+        try:
+            os.rename(file_path, new_path)
+            return True
+        except FileNotFoundError:
+            return False
