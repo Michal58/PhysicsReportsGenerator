@@ -2,7 +2,7 @@ from abc import ABC
 from typing import Any
 
 
-class VariablesOperator(ABC):
+class VariablesConsumer(ABC):
     def __init__(self):
         self.variables: dict[str, Any] = {}
 

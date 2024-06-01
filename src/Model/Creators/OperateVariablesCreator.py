@@ -7,11 +7,11 @@ from PySide6.QtWidgets import QDialog, QFileDialog, QApplication, QWidget
 
 from Model.Creators.Creator import Creator
 from Model.Creators.CreatorListener import CreatorListener
-from Model.Variables.VariablesOperator import VariablesOperator
+from Model.Variables.VariablesConsumer import VariablesConsumer
 from settings_namespace import BASE_FILES
 
 
-class OperateVariablesCreator(Creator, VariablesOperator):
+class OperateVariablesCreator(Creator, VariablesConsumer):
     TITLE: str = 'Variables operator'
     RUN_FUNCTION: str = 'run'
 
