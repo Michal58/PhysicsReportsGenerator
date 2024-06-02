@@ -65,3 +65,11 @@ class FilesDirectoriesManager:
             return True
         except FileNotFoundError:
             return False
+
+
+if __name__ == '__main__':
+    local_settings = {dir_type: f'..\\..\\..\\example\\{dir_type}' for dir_type in
+                      ['baseFiles', 'sourceFiles', 'generatedFiles']}
+
+    manager=FilesDirectoriesManager(local_settings)
+    print(manager.read_files_from_directory('sourceFiles'))

@@ -32,3 +32,9 @@ class SourceFile:
     @staticmethod
     def create_include_command(mark: str) -> str:
         return fr'\include{{{mark}}}'
+
+    def get_all_marks(self)->list[str]:
+        pass
+
+    def replace_includes(self, mark:str, content:str)->bool:
+        pass

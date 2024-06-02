@@ -2,6 +2,7 @@ import os.path
 import re
 
 from Model.FilesDirectoriesManager import FilesDirectoriesManager
+from Model.SourceFiles.SourceFile import SourceFile
 from settings_namespace import SOURCE_FILES
 
 
@@ -147,9 +148,14 @@ class SourceFilesManager:
 
         return self._rename_as_ordered(sorted_files)
 
+    def create_source_files_instances(self)->list[SourceFile]:
+        self.get_list_of_files()
+        return [SourceFile(file) for file in self.files_list]
 
 if __name__ == '__main__':
     local_settings = {dir_type: f'..\\..\\..\\example\\{dir_type}' for dir_type in
                       ['baseFiles', 'sourceFiles', 'generatedFiles']}
     manager = SourceFilesManager(local_settings)
-    manager.change_position_of_file(4, 1)
+    # manager.change_position_of_file(4, 1)
+    manager.get_list_of_files()
+    print(manager.files_list)

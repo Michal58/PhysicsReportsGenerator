@@ -13,6 +13,8 @@ from src.UI.OpeningWindow import OpeningWindow
 
 class MainController:
     SELECT_DIR_CAPTION: str='Select dir'
+    # name of variable for interactions with variables consumers
+    SELECTED_ITEMS_VARIABLE_NAME: str= '__selected_items__'
 
     def __init__(self):
         self.selected_directory: str = ''
