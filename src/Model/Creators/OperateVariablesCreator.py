@@ -1,6 +1,8 @@
 import importlib.util
 import os.path
 import sys
+from types import ModuleType
+
 import sympy as sym
 
 from PySide6.QtWidgets import QDialog, QFileDialog, QApplication, QWidget
@@ -8,6 +10,7 @@ from PySide6.QtWidgets import QDialog, QFileDialog, QApplication, QWidget
 from Model.Creators.Creator import Creator
 from Model.Creators.CreatorListener import CreatorListener
 from Model.Variables.VariablesConsumer import VariablesConsumer
+from Model.utils import path_to_module
 from settings_namespace import BASE_FILES
 
 
@@ -37,10 +40,7 @@ class OperateVariablesCreator(Creator, VariablesConsumer):
 
     def perform_operations(self) -> bool:
         try:
-            module_name = os.path.basename(self.script_path)
-            spec = importlib.util.spec_from_file_location(module_name, self.script_path)
-            script = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(script)
+            script: ModuleType=path_to_module(self.script_path)
             if hasattr(script, OperateVariablesCreator.RUN_FUNCTION):
                 script.run(self.variables)
                 return True

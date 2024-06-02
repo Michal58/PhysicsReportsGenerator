@@ -60,6 +60,12 @@ class SourceFilesManager:
     def create_source_file_name(self, num: int, name_part: str) -> str:
         return f'{num}_{name_part}.{SourceFilesManager.EXTENSION}'
 
+    def save_next_source_file(self, filename: str, content: str) -> bool:
+        self.get_list_of_files()
+        files_directories_manager = FilesDirectoriesManager(self.settings)
+        filename = self.next_file_name(filename)
+        return files_directories_manager.save_file_to_directory(SOURCE_FILES, filename, content)
+
     def next_file_name(self, name_part: str) -> str:
         if re.fullmatch(SourceFilesManager.NAME_FORMAT, name_part) is None:
             return SourceFilesManager.BAD_FILE_NAME
@@ -145,5 +151,5 @@ class SourceFilesManager:
 if __name__ == '__main__':
     local_settings = {dir_type: f'..\\..\\..\\example\\{dir_type}' for dir_type in
                       ['baseFiles', 'sourceFiles', 'generatedFiles']}
-    manager=SourceFilesManager(local_settings)
+    manager = SourceFilesManager(local_settings)
     manager.change_position_of_file(4, 1)

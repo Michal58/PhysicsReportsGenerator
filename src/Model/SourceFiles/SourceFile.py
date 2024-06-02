@@ -1,4 +1,5 @@
 import re
+from typing import AnyStr
 
 
 class SourceFile:
@@ -13,10 +14,15 @@ class SourceFile:
     @staticmethod
     def get_include_mark(include_command: str) -> str:
         # We assume that yet include command syntax is valid
+        """
+        Extract mark from whole command e.g: \\\\include{thisMark}->thisMark
+        :param include_command:
+        :return: mark of whole command structure
+        """
 
-        groups_match = re.match(SourceFile.FILE_INCLUDE_FORMAT, include_command)
-        mark_beginning = groups_match.group(SourceFile.GROUP_OF_NAME_BEGINNING)
-        mark_middle = groups_match.group(SourceFile.GROUP_OF_NAME_MIDDLE)
+        groups_match: re.Match[str] | None = re.match(SourceFile.FILE_INCLUDE_FORMAT, include_command)
+        mark_beginning: AnyStr = groups_match.group(SourceFile.GROUP_OF_NAME_BEGINNING)
+        mark_middle: AnyStr = groups_match.group(SourceFile.GROUP_OF_NAME_MIDDLE)
 
         if mark_beginning:
             return mark_beginning
