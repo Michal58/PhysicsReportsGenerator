@@ -22,7 +22,7 @@ class FilesDirectoriesManager:
     def read_files_from_directory(self, file_type: str) -> list[str]:
         try:
             files: list[str] = [file for file in os.listdir(self.settings[file_type])
-                                if not os.path.isdir(os.path.join(file, self.settings[file_type]))]
+                                if not os.path.isdir(os.path.join(self.settings[file_type], file))]
             return files
         except FileNotFoundError:
             return []
@@ -72,4 +72,3 @@ if __name__ == '__main__':
                       ['baseFiles', 'sourceFiles', 'generatedFiles']}
 
     manager=FilesDirectoriesManager(local_settings)
-    print(manager.read_files_from_directory('sourceFiles'))

@@ -8,7 +8,7 @@ from settings_namespace import SOURCE_FILES
 
 class SourceFilesManager:
     # format of source file - {number}_{name of file}
-    EXTENSION: str = 'tex'
+    EXTENSION: str = SourceFile.EXTENSION
     NAME_FORMAT: str = r'([\w ]+)'
     FILE_FORMAT: str = fr'^(\d+)_{NAME_FORMAT}\.{EXTENSION}$'
     BAD_FORMAT_NUMER: int = -1
