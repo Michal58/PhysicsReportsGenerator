@@ -158,6 +158,10 @@ class SourceFilesManager:
     def create_source_files_instances(self) -> list[SourceFile]:
         return [SourceFile(os.path.join(self.settings[SOURCE_FILES], file)) for file in self.return_ordered_files()]
 
+    def are_source_files_empty(self)->bool:
+        self.get_list_of_files()
+        return self.files_list!=[]
+
 
 if __name__ == '__main__':
     local_settings = {dir_type: f'..\\..\\..\\example\\{dir_type}' for dir_type in

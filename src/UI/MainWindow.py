@@ -2,7 +2,10 @@ import abc
 
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QMainWindow, QMenu, QGridLayout, QFrame, QVBoxLayout, QListWidget, QPushButton, QWidget, \
-    QHBoxLayout, QLabel, QLineEdit, QCheckBox, QGroupBox
+    QHBoxLayout, QLabel, QLineEdit, QCheckBox, QGroupBox, QListWidgetItem, QDialog, QMessageBox
+
+from Controller.Wrappers import FilepathWrapper, CreatorWrapper
+from Model.Creators.Creator import Creator
 
 
 class DisplayPanel(QGroupBox):
@@ -11,8 +14,8 @@ class DisplayPanel(QGroupBox):
         # self.setStyleSheet('background-color:orange')
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
-        self.list = QListWidget()
-        main_layout.addWidget(self.list)
+        self.list_widget = QListWidget()
+        main_layout.addWidget(self.list_widget)
 
     @abc.abstractmethod
     def get_title(self) -> str:
@@ -184,3 +187,69 @@ class MainWindow(QMainWindow):
         self.generate_report_button.setMaximumHeight(MainWindow.MAX_HEIGHT_OF_LOWER_BAR)
         self.generate_report_button.setMinimumHeight(MainWindow.MIN_HEIGHT_OF_LOWER_BAR)
         main_layout.addWidget(self.generate_report_button, 1, 1, 1, 2)
+
+    def update_panels(self, creators_list: list[CreatorWrapper], base_files: list[FilepathWrapper],
+                      source_files: list[FilepathWrapper]) -> None:
+        for panel, new_list in zip([self.creators_panel, self.base_files_panel, self.source_files_panel],
+                                   [creators_list, base_files, source_files]):
+            panel.list_widget.clear()
+            for element in new_list:
+                panel.list_widget.addItem(element)
+
+    def _get_selected_items(self, panel: DisplayPanel) -> list[QListWidgetItem]:
+        return panel.list_widget.selectedItems()
+
+    @property
+    def selected_creator(self) -> Creator | None:
+        selected_items = self._get_selected_items(self.creators_panel)
+        if selected_items == []:
+            return None
+        return selected_items[0].creator
+
+    @property
+    def selected_base_file(self) -> str | None:
+        selected_items = self._get_selected_items(self.base_files_panel)
+        if selected_items == []:
+            return None
+        return selected_items[0].filepath
+
+    @property
+    def selected_source_file(self) -> str | None:
+        selected_items = self._get_selected_items(self.source_files_panel)
+        if selected_items == []:
+            return None
+        return selected_items[0].filepath
+
+    def create_failure_message_box(self, additional_message='')->QDialog:
+        OPERATION_FAILED_TEXT: str = 'Operation failure - tried operation couldn\'t be completed'
+        WINDOW_TITLE: str = "Operation failure"
+
+        msg = QDialog(self)
+        layout:QVBoxLayout=QVBoxLayout()
+        msg.setLayout(layout)
+        msg.setWindowTitle(WINDOW_TITLE)
+        layout.addWidget(QLabel(OPERATION_FAILED_TEXT))
+        if additional_message!='':
+            layout.addWidget(QLabel(additional_message))
+        accept_button:QPushButton=QPushButton('OK')
+        layout.addWidget(accept_button)
+
+        accept_button.clicked.connect(msg.accept)
+
+        return msg
+
+    # def create_input_file_dialog(self):
+    #     class InputFileDialog(QDialog):
+    #         def __init__(self):
+    #             super().__init__()
+    #             TITLE:str='Input name of file'
+    #             dialog:QDialog=QDialog(self)
+    #             dialog.setWindowTitle(TITLE)
+    #             layout:QVBoxLayout=QVBoxLayout()
+    #             dialog.setLayout(layout)
+    #             layout.addWidget(QLabel(TITLE))
+    #             self.input=QLineEdit()
+    #             layout.addWidget(self.input)
+    #             self.ok_button=QPushButton('OK')
+    #             layout.addWidget(self.ok_button)
+    #             self.ok_button.clicked.connect(self.accept)

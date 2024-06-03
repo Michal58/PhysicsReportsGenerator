@@ -70,7 +70,7 @@ class SourceFile:
         except FileNotFoundError:
             return False
 
-    def rename(self,new_name:str)->bool:
+    def rename(self, new_name:str)->bool:
         try:
             new_filepath:str=os.path.join(os.path.dirname(self.filepath), new_name)
             os.rename(self.filepath,new_filepath)
@@ -134,6 +134,9 @@ class SourceFile:
     @property
     def filepath(self) -> str:
         return self.full_path
+
+    def basename(self)->str:
+        return os.path.basename(self.filepath)
 
     def __str__(self):
         return self.filepath
