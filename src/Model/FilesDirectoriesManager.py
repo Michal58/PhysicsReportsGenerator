@@ -50,6 +50,18 @@ class FilesDirectoriesManager:
         except FileNotFoundError:
             return False
 
+    def copy_all_files_to_directory(self, source_file_type: str, dest_file_type: str) -> bool:
+        try:
+            all_source_files: list[str] = self.read_files_from_directory(source_file_type)
+            for source_file in all_source_files:
+                source_path: str=os.path.join(self.settings[source_file_type],source_file)
+                dest_path = os.path.join(self.settings[dest_file_type], source_file)
+                shutil.copyfile(source_path, dest_path)
+            return True
+        except FileNotFoundError as e:
+            print(e)
+            return False
+
     def remove_file(self, file_path: str) -> bool:
         if not os.path.exists(file_path) or os.path.isdir(file_path):
             return False
@@ -68,7 +80,8 @@ class FilesDirectoriesManager:
 
 
 if __name__ == '__main__':
-    local_settings = {dir_type: f'..\\..\\..\\example\\{dir_type}' for dir_type in
+    local_settings = {dir_type: f'..\\..\\example\\{dir_type}' for dir_type in
                       ['baseFiles', 'sourceFiles', 'generatedFiles']}
 
-    manager=FilesDirectoriesManager(local_settings)
+    manager = FilesDirectoriesManager(local_settings)
+    print(manager.copy_all_files_to_directory('sourceFiles','generatedFiles'))

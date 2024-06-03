@@ -87,7 +87,7 @@ class DocumentCreator(Creator):
         return self.dialog_execution == QDialog.Accepted and self.validate_user_info()
 
     def create_document(self) -> bool:
-        body_include_mark: str = SourceFile.create_include_command(DocumentCreator.BODY_MARK)
+        body_include_mark: str = SourceFile.create_input_command(DocumentCreator.BODY_MARK)
         basic_document: str = (f'{NoEscape(r'\documentclass{article}')}\n'
                                f'{Package('graphicx').dumps()}\n'
                                f'{Package('float').dumps()}\n'

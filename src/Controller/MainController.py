@@ -23,6 +23,7 @@ class MainController:
         self.main_window: MainWindow = MainWindow()
         self.settings: dict[str, str] = {}
         self.variables: dict[str, Any] = {}
+        self.creators: dict[str, ]={}
 
     def connect_components_with_actions(self) -> None:
         self.opening_window.create_button.clicked.connect(self.select_workspace_by_create)
@@ -54,6 +55,10 @@ class MainController:
             self.opening_window.close()
         else:
             self.opening_window.communicate_operation_failure()
+
+    def fill_creators_list(self):
+    def refresh_lists(self):
+        pass
 
     def fill_panels(self)->None:
         pass

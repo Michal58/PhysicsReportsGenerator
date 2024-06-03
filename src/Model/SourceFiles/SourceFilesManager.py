@@ -47,13 +47,20 @@ class SourceFilesManager:
         self.get_list_of_files()
         return sorted(self.files_list, key=self.sorting_key)
 
-    def find_the_last_file(self) -> str | None:
+    def _find_file(self, method: callable) -> str | None:
         self.get_list_of_files()
         if len(self.files_list) > 0:
-            last_file = max(self.files_list, key=self.sorting_key)
+            last_file = method(self.files_list, key=self.sorting_key)
             return last_file
         else:
             return None
+
+    def find_the_last_file(self) -> str | None:
+        return self._find_file(max)
+
+    def get_first_file(self) -> str | None:
+        # it should be {START_COUNT}_...
+        return self._find_file(min)
 
     def get_filepath(self, base_name: str) -> str:
         return os.path.join(self.settings[SOURCE_FILES], base_name)
@@ -148,9 +155,9 @@ class SourceFilesManager:
 
         return self._rename_as_ordered(sorted_files)
 
-    def create_source_files_instances(self)->list[SourceFile]:
-        self.get_list_of_files()
-        return [SourceFile(file) for file in self.files_list]
+    def create_source_files_instances(self) -> list[SourceFile]:
+        return [SourceFile(os.path.join(self.settings[SOURCE_FILES], file)) for file in self.return_ordered_files()]
+
 
 if __name__ == '__main__':
     local_settings = {dir_type: f'..\\..\\..\\example\\{dir_type}' for dir_type in
