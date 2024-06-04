@@ -1,12 +1,14 @@
 import importlib
 import pkgutil
+import re
+import subprocess
 from types import ModuleType
 from typing import Any
 import os
 import sys
 
 from PySide6.QtCore import QFileInfo
-from PySide6.QtWidgets import QApplication, QMessageBox, QVBoxLayout
+from PySide6.QtWidgets import QApplication
 from pylatex import Document, NoEscape
 
 import Model
@@ -15,13 +17,15 @@ from Model.Creators.AddTexCreator import AddTexCreator
 from Model.Creators.Creator import Creator
 from Model.Creators.CreatorListener import CreatorListener
 from Model.Creators.EmptyFileCreator import EmptyFileCreator
-from Model.Creators.RemFileCreator import RemFileCreator
+from Model.Creators.TextEditorSelector import TextEditorSelector
 from Model.FilesDirectoriesManager import FilesDirectoriesManager
 from Model.SourceFiles.SourceFile import SourceFile
 from Model.SourceFiles.SourceFilesLinker import SourceFilesLinker
 from Model.SourceFiles.SourceFilesManager import SourceFilesManager
 from Model.Variables.VariablesConsumer import VariablesConsumer
 from Model.Variables.VariablesFileOperator import VariablesFileOperator
+from Model.Variables.variables_namespace import TEXT_EDITOR_VARIABLE
+from documentation_getter import get_documentation_text
 from settings_namespace import BASE_FILES, SOURCE_FILES, GENERATED_FILES, ENCODING
 from src.Model.Opening.ProjectCreator import ProjectCreator
 from src.Model.Opening.ProjectOpener import ProjectOpener
@@ -33,6 +37,7 @@ class MainController(CreatorListener):
     SELECT_DIR_CAPTION: str = 'Select dir'
     # name of variable for interactions with variables consumers
     SELECTED_ITEMS_VARIABLE_NAME: str = '__selected_items__'
+    LINKING_ERROR_MESSAGE: str = 'Linking error'
 
     def __init__(self):
         super().__init__()
@@ -64,7 +69,22 @@ class MainController(CreatorListener):
         self.main_window.source_files_panel.files_operations_section.rem_button.clicked.connect(
             self.remove_selected_file(SOURCE_FILES))
 
-        self.main_window.generate_report_button.clicked.connect(self.generate_pdf)
+        self.main_window.creators_panel.filter_input.textChanged.connect(self.filter_creators_list)
+        self.main_window.creators_panel.regex_checkbox.clicked.connect(self.filter_creators_list)
+
+        self.main_window.generate_report_button.clicked.connect(self.generate_tex_and_pdf)
+
+        self.main_window.close_menu.aboutToShow.connect(lambda: QApplication.instance().quit())
+        self.main_window.help_menu.aboutToShow.connect(self.exec_help_dialog)
+        self.main_window.variables_menu.aboutToShow.connect(self.exec_variable_display)
+
+        self.main_window.link_marks.triggered.connect(self.generate_soft_links)
+        self.main_window.generate_tex.triggered.connect(self.prepare_tex)
+        self.main_window.generate_tex_and_pdf.triggered.connect(self.generate_tex_and_pdf)
+
+        self.main_window.creators_panel.list_widget.doubleClicked.connect(self.use_creator)
+        self.main_window.base_files_panel.list_widget.doubleClicked.connect(lambda: self.open_file_in_text_editor(self.main_window.selected_base_file))
+        self.main_window.source_files_panel.list_widget.doubleClicked.connect(lambda: self.open_file_in_text_editor(self.main_window.selected_source_file))
 
     def select_opening_directory(self) -> str:
         return self.opening_window.directory_dialog.getExistingDirectory(parent=self.opening_window,
@@ -78,6 +98,8 @@ class MainController(CreatorListener):
         if was_open_successful:
             self.settings = opener.get_settings()
             self.variables = opener.get_variables()
+            if TEXT_EDITOR_VARIABLE not in self.variables:
+                self.variables[TEXT_EDITOR_VARIABLE]=''
             self.opening_window.close()
         else:
             self.opening_window.communicate_operation_failure()
@@ -89,6 +111,7 @@ class MainController(CreatorListener):
         was_open_successful: bool = creator.create()
         if was_open_successful:
             self.settings = creator.get_settings()
+            self.variables[TEXT_EDITOR_VARIABLE]=''
             self.opening_window.close()
         else:
             self.opening_window.communicate_operation_failure()
@@ -132,37 +155,79 @@ class MainController(CreatorListener):
 
         return remove_selected_file_closure
 
-    def _generate_pdf(self, source_filepath: str) -> None:
+    def filter_creators_list(self) -> None:
+        filter_text = self.main_window.creators_panel.filter_input.text()
+        should_be_regex: bool = self.main_window.creators_panel.regex_checkbox.isChecked()
+
+        if should_be_regex:
+            try:
+                re.compile(filter_text)
+            except re.error:
+                filter_text = ''
+                should_be_regex = False
+
+        for index in range(self.main_window.creators_panel.list_widget.count()):
+            item = self.main_window.creators_panel.list_widget.item(index)
+            item.setHidden(filter_text not in item.text()
+                           if not should_be_regex or filter_text == ''
+                           else re.match(filter_text, item.text()) is None)
+
+    def generate_pdf(self, source_file: SourceFile) -> None:
         try:
-            base_source: SourceFile = SourceFile(source_filepath)
-            latex_base: str = base_source.filepath
+            latex_base: str = source_file.filepath
             tex: str
             with open(latex_base, 'r', encoding=ENCODING) as file:
                 tex = file.read()
             doc = Document()
             doc.append(NoEscape(tex))
-            doc.generate_pdf(os.path.join(self.settings[GENERATED_FILES], base_source.basename()), clean=True,
+            doc.generate_pdf(os.path.join(self.settings[GENERATED_FILES], source_file.basename()), clean=True,
                              clean_tex=True)
             self.fill_panels()
         except Exception as e:
             self.throw_failure_of_operation(e.__str__())
 
-    def generate_pdf(self) -> None:
-        if self.source_files_manager.are_source_files_empty():
-            self.throw_failure_of_operation()
-            return
+    def generate_soft_links(self) -> None:
+        self.prepare_tex(True)
+
+    def prepare_tex(self, soft_link: bool = False) -> str:
         linker: SourceFilesLinker = SourceFilesLinker(self.settings)
-        linker.soft_link()
-        base_source: SourceFile = SourceFile(self.source_files_manager.get_first_file())
-        self._generate_pdf(base_source.filepath)
+        method: callable = linker.hard_link if not linker.hard_link else linker.soft_link
+        _, mechanically_conducted_linking = method()
+        if not mechanically_conducted_linking:
+            self.throw_failure_of_operation(MainController.LINKING_ERROR_MESSAGE)
+            return ''
+        if soft_link:
+            return ''
+        return linker.get_output_path_of_hard_link()
 
     def generate_tex_and_pdf(self) -> None:
-        if self.source_files_manager.are_source_files_empty():
-            self.throw_failure_of_operation()
+        generated_tex_file: str = self.prepare_tex()
+        if generated_tex_file == '':
             return
-        linker: SourceFilesLinker = SourceFilesLinker(self.settings)
-        linker.hard_link()
-        self._generate_pdf(linker.get_output_path_of_hard_link())
+        self.generate_pdf(SourceFile(generated_tex_file))
+
+    def _get_help_text(self) -> str:
+        try:
+            return get_documentation_text()
+        except FileNotFoundError:
+            return ''
+
+    def exec_help_dialog(self):
+        self.main_window.get_help_window(self._get_help_text()).exec()
+
+    def exec_variable_display(self):
+        self.main_window.get_variables_display(self.variables).exec()
+
+    def open_file_in_text_editor(self,filepath:str):
+        if self.variables[TEXT_EDITOR_VARIABLE] == '':
+            selector: TextEditorSelector=TextEditorSelector(self.settings, self, self.main_window)
+            selector.set_variables(self.variables)
+            selector.perform_functionality()
+        try:
+            command=self.variables[TEXT_EDITOR_VARIABLE]
+            os.system(f'{command} "{filepath}"')
+        except subprocess.CalledProcessError:
+            self.throw_failure_of_operation()
 
     def fill_creators_list(self) -> None:
         CHANGED_PROJECT_INFO: str = 'Changed project'

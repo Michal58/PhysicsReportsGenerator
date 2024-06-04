@@ -1,8 +1,10 @@
 import abc
+from typing import Any
 
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QMainWindow, QMenu, QGridLayout, QFrame, QVBoxLayout, QListWidget, QPushButton, QWidget, \
-    QHBoxLayout, QLabel, QLineEdit, QCheckBox, QGroupBox, QListWidgetItem, QDialog, QMessageBox
+    QHBoxLayout, QLabel, QLineEdit, QCheckBox, QGroupBox, QListWidgetItem, QDialog, QMessageBox, QTextEdit, \
+    QTableWidget, QTableWidgetItem, QScrollArea
 
 from Controller.Wrappers import FilepathWrapper, CreatorWrapper
 from Model.Creators.Creator import Creator
@@ -26,6 +28,7 @@ class CreatorsPanel(DisplayPanel):
     MAIN_TITLE: str = 'Creators'
     FILTER_LABEL_TITLE: str = 'FILTER'
     CHECK_BOX_INFO: str = 'Regex'
+    FILTER_PLACEHOLDER: str = 'filter'
 
     def __init__(self) -> None:
         super().__init__()
@@ -40,6 +43,7 @@ class CreatorsPanel(DisplayPanel):
         self.filter_layout.addWidget(self.filter_label)
 
         self.filter_input: QLineEdit = QLineEdit()
+        self.filter_input.setPlaceholderText(CreatorsPanel.FILTER_PLACEHOLDER)
         self.filter_layout.addWidget(self.filter_input)
 
         self.regex_checkbox: QCheckBox = QCheckBox(CreatorsPanel.CHECK_BOX_INFO)
@@ -89,16 +93,57 @@ class SourceFilesPanel(DisplayPanel):
         return SourceFilesPanel.MAIN_TITLE
 
 
+class HelpDisplay(QDialog):
+    def __init__(self, parent: QWidget, content: str):
+        super().__init__(parent)
+        self.setWindowTitle('Help')
+
+        self.scroll_area: QScrollArea=QScrollArea()
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(self.scroll_area)
+
+        layout = QVBoxLayout(self)
+
+        self.text_edit: QTextEdit = QTextEdit(self)
+        self.text_edit.setReadOnly(True)
+        self.text_edit.setPlainText(content)
+        layout.addWidget(self.text_edit)
+        self.setMinimumWidth(500)
+
+        self.scroll_area.setLayout(layout)
+
+
+class VariablesDisplayPanel(QDialog):
+    def __init__(self, parent: QWidget, variables: dict[str, Any]):
+        super().__init__(parent)
+        self.setWindowTitle('Variables')
+        self.setLayout(QVBoxLayout())
+        self.scroll_area=QScrollArea()
+        layout = QVBoxLayout()
+        self.scroll_area.setLayout(layout)
+        self.pairs_table: QTableWidget = QTableWidget(len(variables), 2)
+        self.pairs_table.setHorizontalHeaderLabels(["Variable", "Value"])
+        for row, name in enumerate(variables):
+            item_key = QTableWidgetItem(name)
+            variable_display=str(variables[name])
+            max_size_of_variable=50
+            variable_display=variable_display[:max_size_of_variable] if len(variable_display)>max_size_of_variable else variable_display
+            item_value = QTableWidgetItem(variable_display)
+            self.pairs_table.setItem(row, 0, item_key)
+            self.pairs_table.setItem(row, 1, item_value)
+        layout.addWidget(self.pairs_table)
+        self.layout().addWidget(self.scroll_area)
+
 class MainWindow(QMainWindow):
     TITLE: str = 'PhysicsReportsGenerator'
 
     GENERATE_MENUS_TITLE: str = 'Generate'
     VARIABLES_MENUS_TITLE: str = 'Variables'
-    SETTINGS_MENUS_TITLE: str = 'Settings'
     MANUAL_MENUS_TITLE: str = 'Manual'
     CLOSE_MENU_TITLE: str = 'Close'
+    LINK_MARKS: str = 'Link marks'
 
-    MENUS_LIST: list[str] = [GENERATE_MENUS_TITLE, VARIABLES_MENUS_TITLE, SETTINGS_MENUS_TITLE, MANUAL_MENUS_TITLE,
+    MENUS_LIST: list[str] = [GENERATE_MENUS_TITLE, VARIABLES_MENUS_TITLE, MANUAL_MENUS_TITLE,
                              CLOSE_MENU_TITLE]
 
     MENU_BAR_CONTRAST_FACTOR: int = 200
@@ -127,15 +172,21 @@ class MainWindow(QMainWindow):
         self._create_menus()
         self._create_content_layout()
 
+    def produce_null_action(self) -> QAction:
+        null_action: QAction = QAction('')
+        null_action.setVisible(False)
+        return null_action
+
     def _create_menus(self) -> None:
         self._create_and_connect_generate_menu()
-        self._create_and_connect_settings()
 
         self.variables_menu: QMenu = QMenu(MainWindow.VARIABLES_MENUS_TITLE, self)
         self.menuBar().addMenu(self.variables_menu)
 
-        self.manual_menu: QMenu = QMenu(MainWindow.MANUAL_MENUS_TITLE, self)
-        self.menuBar().addMenu(self.manual_menu)
+        self.null_action = self.produce_null_action()
+        self.help_menu: QMenu = QMenu(MainWindow.MANUAL_MENUS_TITLE, self)
+        self.help_menu.addAction(self.null_action)
+        self.menuBar().addMenu(self.help_menu)
 
         self.close_menu: QMenu = QMenu(MainWindow.CLOSE_MENU_TITLE, self)
         self.menuBar().addMenu(self.close_menu)
@@ -144,24 +195,14 @@ class MainWindow(QMainWindow):
         self.generate_menu: QMenu = QMenu(MainWindow.GENERATE_MENUS_TITLE, self)
         self.menuBar().addMenu(self.generate_menu)
 
+        self.link_marks: QAction = QAction(MainWindow.LINK_MARKS)
+        self.generate_menu.addAction(self.link_marks)
+
         self.generate_tex: QAction = QAction(MainWindow.GENERATE_TEX_TITLE)
         self.generate_menu.addAction(self.generate_tex)
 
         self.generate_tex_and_pdf: QAction = QAction(MainWindow.GENERATE_TEX_AND_PDF)
         self.generate_menu.addAction(self.generate_tex_and_pdf)
-
-    def _create_and_connect_settings(self) -> None:
-        self.settings_menu: QMenu = QMenu(MainWindow.SETTINGS_MENUS_TITLE, self)
-        self.menuBar().addMenu(self.settings_menu)
-
-        self.set_base_files_directory: QAction = QAction(MainWindow.SET_BASE_FILES_TITLE)
-        self.settings_menu.addAction(self.set_base_files_directory)
-
-        self.set_source_files_directory: QAction = QAction(MainWindow.SET_SOURCE_FILES_TITLE)
-        self.settings_menu.addAction(self.set_source_files_directory)
-
-        self.set_generated_files_directory: QAction = QAction(MainWindow.SET_GENERATED_FILES_TITLE)
-        self.settings_menu.addAction(self.set_generated_files_directory)
 
     def _create_content_layout(self) -> None:
         self.main_widget = QWidget()
@@ -220,36 +261,26 @@ class MainWindow(QMainWindow):
             return None
         return selected_items[0].filepath
 
-    def create_failure_message_box(self, additional_message='')->QDialog:
+    def create_failure_message_box(self, additional_message='') -> QDialog:
         OPERATION_FAILED_TEXT: str = 'Operation failure - tried operation couldn\'t be completed'
         WINDOW_TITLE: str = "Operation failure"
 
         msg = QDialog(self)
-        layout:QVBoxLayout=QVBoxLayout()
+        layout: QVBoxLayout = QVBoxLayout()
         msg.setLayout(layout)
         msg.setWindowTitle(WINDOW_TITLE)
         layout.addWidget(QLabel(OPERATION_FAILED_TEXT))
-        if additional_message!='':
+        if additional_message != '':
             layout.addWidget(QLabel(additional_message))
-        accept_button:QPushButton=QPushButton('OK')
+        accept_button: QPushButton = QPushButton('OK')
         layout.addWidget(accept_button)
 
         accept_button.clicked.connect(msg.accept)
 
         return msg
 
-    # def create_input_file_dialog(self):
-    #     class InputFileDialog(QDialog):
-    #         def __init__(self):
-    #             super().__init__()
-    #             TITLE:str='Input name of file'
-    #             dialog:QDialog=QDialog(self)
-    #             dialog.setWindowTitle(TITLE)
-    #             layout:QVBoxLayout=QVBoxLayout()
-    #             dialog.setLayout(layout)
-    #             layout.addWidget(QLabel(TITLE))
-    #             self.input=QLineEdit()
-    #             layout.addWidget(self.input)
-    #             self.ok_button=QPushButton('OK')
-    #             layout.addWidget(self.ok_button)
-    #             self.ok_button.clicked.connect(self.accept)
+    def get_help_window(self, content: str) -> HelpDisplay:
+        return HelpDisplay(self, content)
+
+    def get_variables_display(self,variables:dict[str,str])->VariablesDisplayPanel:
+        return VariablesDisplayPanel(self,variables)

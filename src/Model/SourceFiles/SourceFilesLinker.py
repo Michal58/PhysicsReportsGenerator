@@ -72,11 +72,11 @@ class SourceFilesLinker:
         if basic_source_files==[]:
             return True, True
 
-        initial_result:tuple[bool,bool] = self._link(linkage, list(changed_source_files))
+        initial_result: tuple[bool, bool] = self._link(linkage, list(changed_source_files))
 
-        change_name_result:bool=changed_source_files[0].rename(SourceFilesLinker.HARD_LINK_NAME)
+        change_name_result: bool=changed_source_files[0].rename(SourceFilesLinker.HARD_LINK_NAME)
         if not change_name_result:
-            return False,False
+            return False, False
 
         for changed_file in changed_source_files[1:]:
             remove_result: bool=changed_file.remove()
@@ -86,7 +86,14 @@ class SourceFilesLinker:
         return initial_result
 
     def get_output_path_of_hard_link(self)->str:
-        return os.path.join(self.settings[GENERATED_FILES],SourceFilesLinker.HARD_LINK_NAME)
+        return os.path.join(self.settings[GENERATED_FILES], SourceFilesLinker.HARD_LINK_NAME)
+
+    def get_main_filepath(self)->str:
+        instances: list[SourceFile]=self.source_files_manager.create_source_files_instances()
+        if instances:
+            return instances[0].filepath
+        else:
+            return ''
 
 if __name__ == '__main__':
     local_settings = {dir_type: f'..\\..\\..\\example\\{dir_type}' for dir_type in

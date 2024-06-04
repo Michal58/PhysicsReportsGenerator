@@ -73,6 +73,8 @@ class SourceFile:
     def rename(self, new_name:str)->bool:
         try:
             new_filepath:str=os.path.join(os.path.dirname(self.filepath), new_name)
+            if os.path.exists(new_filepath):
+                os.remove(new_filepath)
             os.rename(self.filepath,new_filepath)
             return True
         except FileNotFoundError:

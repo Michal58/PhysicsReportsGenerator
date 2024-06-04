@@ -1,4 +1,5 @@
 from settings_namespace import VARIABLES_FILE_NAME
 
+TEXT_EDITOR_VARIABLE="TEXT_EDITOR"
 VARIABLES_FILE=VARIABLES_FILE_NAME
 VAR_COMMAND_FORMAT = r'^\\var{(\w+)}|([^\\])\\var{(\w+)}'

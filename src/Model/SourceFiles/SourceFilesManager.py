@@ -160,7 +160,7 @@ class SourceFilesManager:
 
     def are_source_files_empty(self)->bool:
         self.get_list_of_files()
-        return self.files_list!=[]
+        return self.files_list==[]
 
 
 if __name__ == '__main__':
