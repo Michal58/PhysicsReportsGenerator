@@ -191,7 +191,7 @@ class MainController(CreatorListener):
 
     def prepare_tex(self, soft_link: bool = False) -> str:
         linker: SourceFilesLinker = SourceFilesLinker(self.settings)
-        method: callable = linker.hard_link if not linker.hard_link else linker.soft_link
+        method: callable = linker.hard_link if not soft_link else linker.soft_link
         _, mechanically_conducted_linking = method()
         if not mechanically_conducted_linking:
             self.throw_failure_of_operation(MainController.LINKING_ERROR_MESSAGE)

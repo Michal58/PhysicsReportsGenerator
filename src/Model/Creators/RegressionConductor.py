@@ -63,6 +63,11 @@ class RegressionResults:
         self.uA_error: float = uA_error
         self.uB_error: float = uB_error
 
+    def __str__(self):
+        return f'{self.a_coefficient};{self.b_intercept};{self.uA_error};{self.uB_error}'
+
+    def __repr__(self):
+        return self.__str__()
 
 class RegressionConductor(Creator, VariablesConsumer):
     TITLE: str = 'Linear regression creator'

@@ -221,7 +221,7 @@ class TableCreator(Creator, VariablesConsumer):
 
     INVALID_SCRIPT_MESSAGE: str = 'Provided script cannot perform its task'
     SAVE_PROBLEMS:str="Problems occurred while saving"
-    CALCULATING_SCRIPT_RUN_FUNCTION: str = 'run'
+    CALCULATING_SCRIPT_RUN_FUNCTION: str = 'calc'
     FORMATTING_SCRIPT_TRANSFORMER: str = 'transform'
     FORMATTING_SCRIPT_SOURCE_SAVER: str = 'save_to_source'
     FORMATTED_TABLE_PREFIX: str = 'Formatted_'

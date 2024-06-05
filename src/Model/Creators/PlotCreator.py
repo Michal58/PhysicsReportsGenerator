@@ -36,6 +36,8 @@ class PlotInput(PairInputsDialog):
         self.ok_button: QPushButton = QPushButton('OK')
         layout.addWidget(self.ok_button, 9, 0, 1, 2)
 
+        self.setLayout(layout)
+
         self.ok_button.clicked.connect(self.accept)
 
     def get_input(self) -> tuple[list[str], bool]:
@@ -130,7 +132,7 @@ class PlotCreator(Creator, VariablesConsumer):
 
     def include_plot_in_source(self, base_filepath: str) -> bool:
         table_name: str = os.path.basename(base_filepath).rstrip('.png')
-        relative_path: str = f'..\\{self.settings[BASE_FILES]}\\{table_name}'
+        relative_path: str = f'../{BASE_FILES}/{table_name}'
 
         include_graphic_command: str = r'\includegraphics[width=0.5\linewidth]{' + relative_path + '}'
         caption: str = r'\caption{' + table_name + '}'
@@ -151,9 +153,18 @@ class PlotCreator(Creator, VariablesConsumer):
 
     def perform_operations(self) -> bool:
         try:
-            save_name: str = self.png_save_name()
+            save_name: str = self.create_regression_plot(
+                self.variables[self.x_axis_varname],
+                self.x_axis_label,
+                self.variables[self.y_axis_varname],
+                self.y_axis_label,
+                self.variables[self.x_errors_varname],
+                self.variables[self.y_errors_varname],
+                self.variables[self.regression_result_varname].a_coefficient,
+                self.variables[self.regression_result_varname].b_intercept
+            )
             if self.should_include_in_source:
-                if self.include_plot_in_source(save_name):
+                if not self.include_plot_in_source(save_name):
                     return False
             return True
         except Exception:
