@@ -11,9 +11,10 @@ from Model.Creators.CreatorListener import CreatorListener
 from Model.Creators.TableCreator import TableCreator
 from Model.SourceFiles.SourceFilesManager import SourceFilesManager
 from Model.Variables.VariablesConsumer import VariablesConsumer
+from UI.PairInputsDialog import PairInputsDialog
 
 
-class RegressionDialog(QDialog):
+class RegressionDialog(PairInputsDialog):
     def __init__(self, parent_widget: QWidget):
         super().__init__(parent_widget)
         self.setWindowTitle('Conduct regression')
@@ -50,13 +51,6 @@ class RegressionDialog(QDialog):
         for i in range(self.changing_visible_rows_start_index, self.changing_visible_rows_end_index + 1):
             self.layout().itemAtPosition(i, 0).widget().setVisible(new_visible_stance)
             self.layout().itemAtPosition(i, 1).widget().setVisible(new_visible_stance)
-
-    def add_pair(self, row: int, label_name: str, layout: QGridLayout) -> tuple[QLabel, QLineEdit]:
-        label: QLabel = QLabel(label_name)
-        input_for_user: QLineEdit = QLineEdit()
-        layout.addWidget(label, row, 0)
-        layout.addWidget(input_for_user, row, 1)
-        return label, input_for_user
 
     def get_user_input(self) -> list[str]:
         return [self.layout().itemAtPosition(i, 1).widget().text() for i in range(9) if i!=3 and i!=8]
