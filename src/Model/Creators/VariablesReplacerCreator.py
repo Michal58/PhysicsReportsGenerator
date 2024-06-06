@@ -3,6 +3,7 @@ import sys
 
 import sympy as sym
 
+from Model.SourceFiles.SourceFile import SourceFile
 from Model.Variables.variables_namespace import VAR_COMMAND_FORMAT
 
 from PySide6.QtWidgets import QWidget, QFileDialog, QDialog, QApplication
@@ -54,30 +55,15 @@ class VariablesReplacerCreator(Creator, VariablesConsumer):
                 return False
         return True
 
-    def _get_text_from_file(self, path: str) -> tuple[bool, str]:
-        try:
-            with open(path, 'r', encoding=ENCODING) as file:
-                saved_text: str = file.read()
-                return True, saved_text
-        except FileNotFoundError:
-            return False, ''
-
-    def _save_text_fo_file(self, path: str, replaced_text: str) -> bool:
-        try:
-            with open(path, 'w', encoding=ENCODING) as file:
-                file.write(replaced_text)
-                return True
-        except FileNotFoundError:
-            return False
-
     def perform_operations(self) -> bool:
         # we replace all variables or none
         for filepath in self.files_to_replace:
-            success_info, text_to_replace = self._get_text_from_file(filepath)
+            source_instance: SourceFile=SourceFile(filepath)
+            success_info, text_to_replace = source_instance.read_content_of_file()
             if not (success_info and self._validate_variables_names(text_to_replace)):
                 return False
             replaced_text: str = self._replace_variables_in_text(text_to_replace)
-            if not self._save_text_fo_file(filepath, replaced_text):
+            if not source_instance.save_content_to_file(replaced_text):
                 return False
         return True
 

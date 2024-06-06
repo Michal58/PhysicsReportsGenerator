@@ -220,7 +220,7 @@ class TableCreator(Creator, VariablesConsumer):
     CSV_SEPARATOR: str = ','
 
     INVALID_SCRIPT_MESSAGE: str = 'Provided script cannot perform its task'
-    SAVE_PROBLEMS:str="Problems occurred while saving"
+    SAVE_PROBLEMS: str="Problems occurred while saving"
     CALCULATING_SCRIPT_RUN_FUNCTION: str = 'calc'
     FORMATTING_SCRIPT_TRANSFORMER: str = 'transform'
     FORMATTING_SCRIPT_SOURCE_SAVER: str = 'save_to_source'
@@ -320,7 +320,7 @@ class TableCreator(Creator, VariablesConsumer):
     def run_calculating_script(self) -> None:
         script: ModuleType = path_to_module(self.calculating_script_path)
         if hasattr(script, TableCreator.CALCULATING_SCRIPT_RUN_FUNCTION):
-            self.variables[self.table_name] = script.run(self.variables[self.table_name])
+            self.variables[self.table_name] = script.calc(self.variables[self.table_name])
         else:
             raise ValueError(TableCreator.INVALID_SCRIPT_MESSAGE)
 

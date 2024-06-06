@@ -14,3 +14,10 @@ if such exists.
 Project will automatically create needed directories defined in settings if they couldn't be found
 
 Creator convention - name of creator script -> name of creator class
+
+Application also use variables.
+There could be contained various objects and their save file name is variables.pkl
+
+There are special variables:
+    TEXT_EDITOR -   variable contains name of command for running text editor
+    LATEX_SUBS  -   variable contains symbols for substitution in latex document

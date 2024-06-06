@@ -172,16 +172,7 @@ class MainController(CreatorListener):
 
     def generate_pdf(self, source_file: SourceFile) -> None:
         try:
-            latex_base: str = source_file.filepath
-            tex: str
-            with open(latex_base, 'r', encoding=ENCODING) as file:
-                tex = file.read()
-            # doc = Document()
-            # doc.append(NoEscape(tex))
-            # doc.generate_pdf(os.path.join(self.settings[GENERATED_FILES], source_file.basename()), clean=True,
-            #                  clean_tex=True)
-            subprocess.Popen(['pdflatex', f'{source_file}', f'{os.path.join(self.settings[GENERATED_FILES], source_file.basename())}'])
-            os.system(f'pdflatex {source_file}'+f'{os.path.join(self.settings[GENERATED_FILES], source_file.basename())}')
+            os.system(f'pdflatex -output-directory="{self.settings[GENERATED_FILES]}" "{source_file.filepath}"')
             self.fill_panels()
         except Exception as e:
             self.throw_failure_of_operation(e.__str__())

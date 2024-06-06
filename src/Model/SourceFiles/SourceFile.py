@@ -147,15 +147,6 @@ class SourceFile:
         return self.__str__()
 
 
-def _replacement_conductor(text_of_file, replacer: callable, mark: str, content: str):
-    format_to_replace: str = re.sub(SourceFile.MARK_CAPTURE_PATTERN, f'({mark})', SourceFile.FILE_INPUT_FORMAT)
-    print(format_to_replace)
-    text_of_file = re.sub(pattern=format_to_replace,
-                          repl=lambda matched_text: replacer(content, matched_text),
-                          string=text_of_file)
-    return text_of_file
-
-
 if __name__ == '__main__':
     local_settings = {dir_type: f'..\\..\\..\\example\\{dir_type}' for dir_type in
                       ['baseFiles', 'sourceFiles', 'generatedFiles']}
