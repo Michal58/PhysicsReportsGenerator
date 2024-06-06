@@ -37,7 +37,9 @@ class Creator:
     @abc.abstractmethod
     def validate_data(self) -> bool:
         """
-        Check if user input was valid
+        Check if user input was valid. Method validates if user entry was
+        initially correct. Checking correctness of deeper mechanisms IS NOT
+        purpose of this method.
         :return:bool
         """
         pass

@@ -35,8 +35,6 @@ from src.UI.OpeningWindow import OpeningWindow
 
 class MainController(CreatorListener):
     SELECT_DIR_CAPTION: str = 'Select dir'
-    # name of variable for interactions with variables consumers
-    SELECTED_ITEMS_VARIABLE_NAME: str = '__selected_items__'
     LINKING_ERROR_MESSAGE: str = 'Linking error'
 
     def __init__(self):
@@ -178,10 +176,12 @@ class MainController(CreatorListener):
             tex: str
             with open(latex_base, 'r', encoding=ENCODING) as file:
                 tex = file.read()
-            doc = Document()
-            doc.append(NoEscape(tex))
-            doc.generate_pdf(os.path.join(self.settings[GENERATED_FILES], source_file.basename()), clean=True,
-                             clean_tex=True)
+            # doc = Document()
+            # doc.append(NoEscape(tex))
+            # doc.generate_pdf(os.path.join(self.settings[GENERATED_FILES], source_file.basename()), clean=True,
+            #                  clean_tex=True)
+            subprocess.Popen(['pdflatex', f'{source_file}', f'{os.path.join(self.settings[GENERATED_FILES], source_file.basename())}'])
+            os.system(f'pdflatex {source_file}'+f'{os.path.join(self.settings[GENERATED_FILES], source_file.basename())}')
             self.fill_panels()
         except Exception as e:
             self.throw_failure_of_operation(e.__str__())
