@@ -11,13 +11,168 @@ Fields of settings.json (they are also listed in settings_namespace.py):
 If project is 'created', in current version new settings file will overwrite another 'setting.json' file
 if such exists.
 
-Project will automatically create needed directories defined in settings if they couldn't be found
-
-Creator convention - name of creator script -> name of creator class
+Project will automatically create needed directories defined in settings if they couldn't be found.
 
 Application also use variables.
-There could be contained various objects and their save file name is variables.pkl
+As user, you are allowed to set various data or objects in variables they are contained in variables.pkl.
 
 There are special variables:
-    TEXT_EDITOR -   variable contains name of command for running text editor
-    LATEX_SUBS  -   variable contains symbols for substitution in latex document
+    TEXT_EDITOR – This variable stores the command name for launching a text editor (e.g., Notepad, VS Code, or any other application you prefer for editing files)
+    LATEX_SUBS  - This variable stores symbols for substitution in latex document
+
+You can input to the file text defined by your own variables with \var{<alphanumerical text>} after applying appropriate creator (Variables replacer).
+
+The application is divided on three parts: Creators, Base files and Source files.
+You can react with files/creators with double click.
+
+Actions for preparations of report are available under generators' container.
+There are predefined generators, but you can access src\Model\Creators to add your own with new functionalities as long as they keep convention.
+
+Creator convention - name of creator script -> name of creator class.
+Your creator has to inherit Creator class and override abstract methods.
+
+Base files are indeed source files for Source files section. On the base of this files
+you will be composing your project
+
+Source files - these are files ready to process by project building units.
+Application handles ordering of these files.
+Source files creates form of stack - to associate fragments of tex files you have to
+use \input command - it doesn't have to possess proper name (which could be changed in future).
+Here we assume that \input is just place of linkage (where linker perform actual linking).
+As in one tex file you can reference different files multiple times, linker connects the nearest
+file to \input point recursively - so you can represent nested structures.
+
+Let's say that we have:
+
+file1:
+    \input{l1}
+    \input{l2}
+file2:
+    \input{l3}
+file3:
+    Actual text - 3
+file4:
+    Actual text - 4
+
+l1 from file1 will connect file2 -> l3 will connect file3 (Actual text - 3)
+l2 from  file1 will connect file4
+
+and as the result we will get
+
+Actual text - 3
+Actual text - 4
+
+You can add source files by 'Add' option under source files container. After click, you will see dialog
+to select base file to add.
+
+You can generate appropriate files with generate tab.
+
+Link marks - use if you want to take all tex files and use each as separate source of document -
+in this approach we put responsibility for proper linkage on LaTeX compiler.
+To make it work properly, there should be some alphanumerical text in \input command, then linker will associate appropriate files.
+
+Generate .tex - use it if you want to get one connected file which follows \input commands. Generated
+file can be found in generatedFiles in report project directory.
+
+There is option to generate report (this option include pdf) - it works in such way that it uses
+linking described above and then calls command to generate report. Because of that, to make this
+functionality possible to use, you have to set appropriate local LaTeX environment.
+So if you have any problems with this type of report generation, consider generate .tex option.
+
+Creators:
+
+Add mark creator - it simply adds unique, valid mark at the end of the selected document. It is preferred
+way of linking files.
+
+Add .tex file - same functionality as described above 'Add' button. It adds selected base file
+to source files.
+
+Change source file position - it moves specified source file from one position to another. Application
+then perform reordering.
+
+Document creator - it creates the most common start of LaTeX document with appropriate libraries.
+It also includes \input to next file (independently if it exists or not).
+
+Create empty file - functionality to create new empty base file. Same option as 'Add' under base files container.
+
+Equation inputter - explanation can be found also in docstring.
+
+Class which purpose is to process user mathematical expressions.
+User can input expression or 'equation - like expression', where first side
+of equation won't be evaluated. After inputting valid to retrieve expression,
+it will be converted into sympy expression, and saved in variable. If user marked option for
+expanding, expression will try to be firstly substituted with available variables,
+and then simplified.
+
+Variables operator - this generator points to python script in base files which purpose is
+to access variables of project, and supposedly to set, read, modify or delete variables.
+
+Such script has to have function run(variables:dict[str,Any]).
+'variables' are pairs of name of variable and value of variable passed as dictionary.
+
+Example function:
+from typing import Any
+
+def run(variables:dict[str,Any]):
+    variables["a"]=5
+    variables["b"]=variables["TEXT_EDITOR"]+"b"
+
+Plotter - generator which creates plot with measurements point and their errors as png.
+Before use of that generator you have to calculate linear regression parameters of given points.
+To fulfill such task you can either do this with Linear regression creator or calculate parameters by yourself (value of type RegressionResults class).
+To make it work, you have to define earlier points (as variables) on x and y-axis as pd.Series (there is appropriate field to fill that info).
+
+Linear regression creator - we need earlier define sample points for x and y-axis as variables.
+On this base creator calculate linear regression and save its parameters in variable of type RegressionResults class.
+If option checked, generator will include in source files tabular presentation of calculated coefficients.
+
+File remover - it removes selected file.
+
+Table creator - generator creates data in tabular form.
+Here assumption is that user probably want to convert txt file (where he saved results of experiments during class).
+Later after refactoring by this generator, user has possibility to process csv (as this is more preferable format of file for data processing).
+Main purpose is to save data as pd.DataFrame (with defined variable name) and possibly convert it to LaTeX table (convert table into source file option).
+You can add rows and columns to base table.
+You can attach script which will operate on table and transform it in defined by a user way - such script has to have the following properties:
+- calc(data_frame: pd.DataFrame) -> pd.DataFrame function
+
+example function in script:
+
+def calc(data_frame: pd.DataFrame) -> pd.DataFrame:
+    transformer: TableTransformer = TableTransformer(data_frame)
+    transformer.create_device_errors('u(U)[V]', 'U[V]', 0.3, 0.01)
+    transformer.rounds_up('u(U)[V]', 3)
+    transformer.create_device_errors('u(I)[A]', 'I[A]', 1.2, 0.0001)
+
+    return transformer.return_frame()
+
+Beside calculation transformation you can also steer how table in source file will look like.
+You can format output with transformation script - it will add new variable with formatted table by adding 'Formatted_' to base variable name.
+It has to have transform(data_frame: pd.DataFrame) -> pd.DataFrame function.
+
+example function in script:
+
+def transform(data_frame: pd.DataFrame) -> pd.DataFrame:
+    data_frame=data_frame.copy()
+    transformer: TableTransformer = TableTransformer(data_frame)
+    transformer.rounds_up('u(I)[A]',3)
+    data_frame= transformer.return_frame()
+    data_frame['u(I)[A]']=data_frame['u(I)[A]'].astype(str)
+    for i, element in enumerate(data_frame['e[V]']):
+        data_frame.at[i,'e[V]']=str(element).replace('0','o')
+    return data_frame
+
+
+As mentioned before, you can save table in csv and get LaTeX form and make it source file.
+But you can also save such table in google spreadsheet. If you obtain key to gspread, you can pass it as input to generator and get table in spreadsheet.
+
+Text editor selector - you can put here command name for running text editor - e.g. code will result that files will be opened with vscode.
+
+Creator of transform library - generator creates python file (as base file) which purpose is to deliver useful functions and transformations templates.
+You can use it in scripts which will be applied in table creation. Main class in that script is TableTransformer, and as docstring says:
+
+Purpose of class is to use it as wrapper on certain data table and
+refactor it within its methods, so table transformer operates only on one DataFrame
+
+Variables replacer - Generator replaces variables (\var{varName}) in selected source files with its values.
+

@@ -410,7 +410,7 @@ class TableCreator(Creator, VariablesConsumer):
                     copy_od_data_frame.to_csv(os.path.join(self.settings[BASE_FILES], f'{self.table_name}.csv'), index=self.should_create_index, sep=TableCreator.CSV_SEPARATOR, encoding=ENCODING)
                     if self.formatting_script_path != '':
                         formatted_frame: pd.DataFrame = self.variables[self.get_formatted_table_name()]
-                        formatted_frame.to_csv(self.settings[BASE_FILES], index=self.should_create_index,
+                        formatted_frame.to_csv(os.path.join(self.settings[BASE_FILES], self.get_formatted_table_name()), index=self.should_create_index,
                                                sep=TableCreator.CSV_SEPARATOR)
                 if self.should_make_source_file:
                     if self.formatting_script_path != '':
